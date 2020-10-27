@@ -1,5 +1,9 @@
 
 #Set Nuclear Cost
+from random import random
+
+from pandas import np
+
 d=.07
 nuclear_plantlife = int(np.random.normal(loc=60,scale=4))
 nuclear_CRF = ((d*(1+d)**nuclear_plantlife)/((1+d)**(nuclear_plantlife)-1))

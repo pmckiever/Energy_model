@@ -1,12 +1,12 @@
 from mesa.visualization.ModularVisualization import ModularServer
-from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
+from mesa.visualization.modules import CanvasGrid, ChartModule
+
+from energy_model.agents import Residential, Commercial
+from energy_model.model import Energy
 
 # from energy_model.agents import Wolf, Sheep, GrassPatch
 # from energy_model.model import Wolf-Sheep
-
-from energy_model.agents import Residential, Commercial, Poweplants
-from energy_model.model import Energy
 
 
 def energy_portrayal(agent):
@@ -66,9 +66,9 @@ model_params = {
 }
 
 server = ModularServer(
-    WolfSheep,
+    Energy,
     [canvas_element, Wealth, Average_Consumption, Average_cost, Power_mix, CO2e, Supply_and_demand, Average_bill,
-     Cost_by_source], "Wolf Sheep Predation", model_params,
+     Cost_by_source], model_params,
 )
 server.port = 8521
 
