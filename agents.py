@@ -283,70 +283,64 @@ nuclear_efficiency = nuclear_efficiency + random.uniform(0, .0005)
 gas_fuelcost = gas_fuelcost + random.uniform(.007, .013)
 coal_fuelcost = coal_fuelcost + random.uniform(.007, .013)
 
-
-# This is where defining the class begins
-
 class Residential(RandomWalker):
-    r_money = np.random.lognormal(75000, 25000)
-    r_wtp = random.normalvariate(16, 16)
-    r_energy_usage = random.normalvariate(696, 100)
-    r_savings = np.random.lognormal(70000, 70000)
-    r_costs = r_energy_usage * residential_kWh_cost
+    """
+    A wolf that walks around, reproduces (asexually) and eats sheep.
+    """
 
-    # whats up with solar and clean.
+    money = None
 
-    def __init(self, unique_id, pos, model,moore, r_money=np.random.lognormal(75000, 25000), r_wtp=random.normalvariate(16, 16),
-               r_energy_usage=random.normalvariate(696, 100), r_savings=np.random.lognormal(70000, 70000),
-               r_costs=(r_energy_usage * residential_kWh_cost)):
-        super().__init__(unique_id, pos, model,moore =moore)
-        self.r_money = r_money
-        self.r_wtp = r_wtp
-        self.r_energy_usage = r_energy_usage
-        self.r_savings = r_savings
-        self.r_costs = r_costs
+    def __init__(self, unique_id, pos, model, moore, money=None):
+        super().__init__(unique_id, pos, model, moore=moore)
+        self.money = money
 
     def step(self):
-        living = True
-        if living and self.random.random() < self.model.residential_reproduce:
-            # Create a new sheep:
-            resident = Residential(
-                self.model.next_id(), self.pos, self.model, self.moore, self.r_money,self.r_wtp,self.r_energy_usage,self.r_savings ,self.r_costs
-            )
-            self.model.grid.place_agent(resident, self.pos)
-            self.model.schedule.add(resident)
+        self.random_move()
+        self.money -= 1
+
+        # If there are sheep present, eat one
+        x, y = self.pos
+        this_cell = self.model.grid.get_cell_list_contents([self.pos])
+        resident = [obj for obj in this_cell if isinstance(obj, Residential)]
+        if len(Residential) > 0:
+            self.money = self.model.money_setting
+
+        #     # Kill the sheep
+        #     #self.model.grid._remove_agent(self.pos, sheep_to_eat)
+        #     self.model.schedule.remove(sheep_to_eat)
+        #
+        # # Death or reproduction
+        # if self.energy < 0:
+        #     self.model.grid._remove_agent(self.pos, self)
+        #     self.model.schedule.remove(self)
+        # else:
+        #     if self.random.random() < self.model.wolf_reproduce:
+        #         # Create a new wolf cub
+        #         self.energy /= 2
+        #         cub = Wolf(
+        #             self.model.next_id(), self.pos, self.model, self.moore, self.energy
+        #         )
+        #         self.model.grid.place_agent(cub, cub.pos)
+        #         self.model.schedule.add(cub)
 
 
-#    def step(self):()
-
-class Commercial(RandomWalker):
-    c_money = np.random.lognormal(300000, 150000)
-    c_wtp = random.normalvariate(200, 200)
-    c_energy_usage = random.normalvariate(6300, 1000)
-    c_savings = np.random.lognormal(3000000, 1000000)
-    c_costs = c_energy_usage * commercial_kWh_cost
-
-    # whats up with solar and clean.
-
-    def __init(self, unique_id, pos, model,moore, c_money=np.random.lognormal(300000, 150000),
-               c_wtp=random.normalvariate(200, 200), c_energy_usage=random.normalvariate(6300, 1000),
-               c_savings=np.random.lognormal(3000000, 1000000), c_costs=(c_energy_usage * commercial_kWh_cost)):
-        super().__init__(unique_id, pos, model,moore = moore)
-        self.c_money = c_money
-        self.c_wtp = c_wtp
-        self.c_energy_usage = c_energy_usage
-        self.c_savings = c_savings
-        self.c_costs = c_costs
-
-        def step(self):
-            living = True
-            if living and self.random.random() < self.model.commercial_reproduce:
-                # Create a new sheep:
-                commercial_unit = Commercial(
-                    self.model.next_id(), self.pos, self.model, self.moore, self.c_money, self.c_wtp, self.c_energy_usage,
-                    self.c_savings, self.c_costs
-                )
-                self.model.grid.place_agent(commercial_unit, self.pos)
-                self.model.schedule.add(commercial_unit)
+# # This is where defining the class begins
+#
+# class Residential(RandomWalker):
+#     r_money = np.random.lognormal(75000, 25000)
+#     r_wtp = random.normalvariate(16, 16)
+#     r_energy_usage = random.normalvariate(696, 100)
+#     r_savings = np.random.lognormal(70000, 70000)
+#     r_costs = r_energy_usage * residential_kWh_cost
+#
+#     # whats up with solar and clean.
+#
+#     def __init(self, unique_id, pos, model,moore, r_money=np.random.lognormal(75000, 25000), r_wtp=random.normalvariate(16, 16),
+#                r_energy_usage=random.normalvariate(696, 100), r_savings=np.random.lognormal(70000, 70000),
+#                r_costs=(r_energy_usage * residential_kWh_cost)):
+#         super().__init__(unique_id, pos, model,moore =moore)
+#         self.r_money = r_money
+#         self.r_wtp = r_
 
 #    def step(self):
 #

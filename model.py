@@ -18,7 +18,7 @@ from mesa.datacollection import DataCollector
 from pandas import np
 
 
-from energy_model.agents import Residential, Commercial
+from energy_model.agents import Residential
 from energy_model.schedule import RandomActivationByBreed
 
 import random
@@ -304,33 +304,44 @@ nuclear_efficiency = nuclear_efficiency + random.uniform(0, .0005)
 gas_fuelcost = gas_fuelcost + random.uniform(.007, .013)
 coal_fuelcost = coal_fuelcost + random.uniform(.007, .013)
 
-
 class Energy(Model):
+    """
+    Wolf-Sheep Predation Model
+    """
+
     height = 20
     width = 20
-    residential = 3480000
-    commercial = 520000
-    verbose = False
+
+    initial_residential = 1740
+
+    #sheep_reproduce = 0.04
+    #wolf_reproduce = 0.05
+
+    money_setting = np.random.lognormal(75000, 25000)
+
+
+    #grass = False
+    #grass_regrowth_time = 30
+    #sheep_gain_from_food = 4
+
+    verbose = False  # Print-monitoring
+
+    description = (
+        "A model for simulating wolf and sheep (predator-prey) ecosystem modelling."
+    )
 
     def __init__(
-            self,
-            height=20,
-            width=20,
-            initial_residential=1740,
-            initial_commercial=260,
-            wind_investment=3,
-            clean_incentive=1,
-            r_money=np.random.lognormal(75000, 25000),
-            r_wtp = random.normalvariate(16, 16),
-            r_energy_usage = random.normalvariate(696, 100),
-            r_savings = np.random.lognormal(70000, 70000),
-            r_costs = random.normalvariate(696, 100)* residential_kWh_cost,
-            c_money=np.random.lognormal(300000, 150000),
-            c_wtp = random.normalvariate(200, 200),
-            c_energy_usage = random.normalvariate(6300, 1000),
-            c_savings = np.random.lognormal(3000000, 1000000),
-            c_costs = random.normalvariate(6300, 1000)* commercial_kWh_cost,
-            producer_strategy="min_cost",
+        self,
+        height=20,
+        width=20,
+        initial_residential= 1740,
+        money_setting = np.random.lognormal(75000, 25000)
+        #sheep_reproduce=0.04,
+        #wolf_reproduce=0.05,
+        #wolf_gain_from_food=20,
+        #grass=False,
+        #grass_regrowth_time=30,
+        #sheep_gain_from_food=4,
     ):
 
         super().__init__()
@@ -338,28 +349,24 @@ class Energy(Model):
         self.height = height
         self.width = width
         self.initial_residential = initial_residential
-        self.initial_commercial = initial_commercial
-        self.wind_investment = wind_investment
-        self.clean_incentive = clean_incentive
-        self.producer_strategy = producer_strategy
-        self.r_money = r_money
-        self.r_wtp = r_wtp
-        self.r_energy_usage = r_energy_usage
-        self.r_savings = r_savings
-        self.r_costs = r_costs
-        self.c_money = c_money
-        self.c_wtp = c_wtp
-        self.c_energy_usage = c_energy_usage
-        self.c_savings = c_savings
-        self.c_costs = c_costs
+        self.money_setting = money_setting
+        # self.initial_commercial = initial_commercial
+        # self.wind_investment = wind_investment
+        # self.clean_incentive = clean_incentive
+        # self.producer_strategy = producer_strategy
+        # self.sheep_reproduce = sheep_reproduce
+        # self.wolf_reproduce = wolf_reproduce
+        # self.wolf_gain_from_food = wolf_gain_from_food
+        # self.grass = grass
+        # self.grass_regrowth_time = grass_regrowth_time
+        #self.sheep_gain_from_food = sheep_gain_from_food
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
         self.datacollector = DataCollector(
             {
-                "Residential": lambda m: m.schedule.get_breed_count(Residential),
-                "Commercial": lambda m: m.schedule.get_breed_count(Commercial),
-                #"Power Plants": lambda m: m.schedule.get_breed_count(Poweplants)
+                "Residents": lambda m: m.schedule.get_breed_count(Residential),
+                #"Sheep": lambda m: m.schedule.get_breed_count(Sheep),
             }
         )
 
@@ -367,31 +374,38 @@ class Energy(Model):
         for i in range(self.initial_residential):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            r_money = np.random.lognormal(75000, 25000)
-            r_wtp = random.normalvariate(16, 16)
-            r_energy_usage = random.normalvariate(696, 100)
-            r_savings = np.random.lognormal(70000, 70000)
-            r_costs = r_energy_usage * residential_kWh_cost
-            residential = Residential(self.next_id(), (x, y), self, True,r_money,r_wtp,r_energy_usage,r_savings,r_costs)
-            self.grid.place_agent(residential, (x, y))
-            self.schedule.add(residential)
-
-        # Create wolves
-        for i in range(self.initial_commercial):
-            x = self.random.randrange(self.width)
-            y = self.random.randrange(self.height)
-            c_money = np.random.lognormal(300000, 150000)
-            c_wtp = random.normalvariate(200, 200)
-            c_energy_usage = random.normalvariate(6300, 1000)
-            c_savings = np.random.lognormal(3000000, 1000000)
-            c_costs = c_energy_usage * commercial_kWh_cost
-            commercial = Commercial(self.next_id(), (x, y), self, True,c_money,c_wtp,c_energy_usage,c_savings,c_costs)
-            self.grid.place_agent(commercial, (x, y))
-            self.schedule.add(commercial)
-
-        self.running = True
-        self.datacollector.collect(self)
-
+            money = self.money_setting
+            residents = Residential(self.next_id(), (x, y), self, True, money)
+            self.grid.place_agent(residents, (x, y))
+            self.schedule.add(residents)
+    #
+    #     # Create wolves
+    #     for i in range(self.initial_commercial):
+    #         x = self.random.randrange(self.width)
+    #         y = self.random.randrange(self.height)
+    #         energy = self.random.randrange(2 * self.wolf_gain_from_food)
+    #         wolf = Wolf(self.next_id(), (x, y), self, True, energy)
+    #         self.grid.place_agent(wolf, (x, y))
+    #         self.schedule.add(wolf)
+    #
+    #     # Create grass patches
+    #     if self.grass:
+    #         for agent, x, y in self.grid.coord_iter():
+    #
+    #             fully_grown = self.random.choice([True, False])
+    #
+    #             if fully_grown:
+    #                 countdown = self.grass_regrowth_time
+    #             else:
+    #                 countdown = self.random.randrange(self.grass_regrowth_time)
+    #
+    #             patch = GrassPatch(self.next_id(), (x, y), self, fully_grown, countdown)
+    #             self.grid.place_agent(patch, (x, y))
+    #             self.schedule.add(patch)
+    #
+    #     self.running = True
+    #     self.datacollector.collect(self)
+    #
     def step(self):
         self.schedule.step()
         # collect data
@@ -401,23 +415,124 @@ class Energy(Model):
                 [
                     self.schedule.time,
                     self.schedule.get_breed_count(Residential),
-                    self.schedule.get_breed_count(Commercial)
+                    #self.schedule.get_breed_count(Sheep),
                 ]
             )
 
-    def run_model(self, step_count=480):
+    def run_model(self, step_count=200):
 
         if self.verbose:
-            print("Initial number commercial agents: ", self.schedule.get_breed_count(Commercial))
-            print("Initial number residential agents: ", self.schedule.get_breed_count(Residential))
+            print("Initial number commercial agents: ", self.schedule.get_breed_count(Residential))
+            #print("Initial number resdidential agents: ", self.schedule.get_breed_count(Sheep))
 
         for i in range(step_count):
             self.step()
 
         if self.verbose:
             print("")
-            print("Final number Commercial: ", self.schedule.get_breed_count(Commercial))
-            print("Final number Residential: ", self.schedule.get_breed_count(Residential))
+            print("Final number wolves: ", self.schedule.get_breed_count(Residential))
+            #print("Final number sheep: ", self.schedule.get_breed_count(Sheep))
+
+
+# class Energy(Model):
+#     height = 20
+#     width = 20
+#     initial_residential = 3480000
+#     initial_commercial = 520000
+#     wind_investment = 3
+#     clean_incentive = 1
+#     verbose = False
+#     residential_reproduce = .14
+#     commercial_reproduce = .13
+#
+#     def __init__(
+#             self,
+#             height=20,
+#             width=20,
+#             initial_residential=1740,
+#             initial_commercial=260,
+#             wind_investment=3,
+#             clean_incentive=1,
+#             residential_reproduce = .14,
+#             commercial_reproduce = .13,
+#             producer_strategy="min_cost",
+#     ):
+#
+#         super().__init__()
+#         self.height = height
+#         self.width = width
+#         self.initial_residential = initial_residential
+#         self.initial_commercial = initial_commercial
+#         self.wind_investment = wind_investment
+#         self.clean_incentive = clean_incentive
+#         self.producer_strategy = producer_strategy
+#         self.residential_reproduce = residential_reproduce
+#         self.commercial_reproduce = commercial_reproduce
+#         self.schedule = RandomActivationByBreed(self)
+#         self.grid = MultiGrid(self.height, self.width, torus=True)
+#         self.datacollector = DataCollector(
+#             {
+#                 "Residential": lambda m: m.schedule.get_breed_count(Residential),
+#                 "Commercial": lambda m: m.schedule.get_breed_count(Commercial),
+#                 #"Power Plants": lambda m: m.schedule.get_breed_count(Poweplants)
+#             }
+#         )
+#
+#         # Create sheep:
+#         for i in range(self.initial_residential):
+#             x = self.random.randrange(self.width)
+#             y = self.random.randrange(self.height)
+#             r_money = np.random.lognormal(75000, 25000)
+#             r_wtp = random.normalvariate(16, 16)
+#             r_energy_usage = random.normalvariate(696, 100)
+#             r_savings = np.random.lognormal(70000, 70000)
+#             r_costs = r_energy_usage * residential_kWh_cost
+#             residential = Residential(self.next_id(), (x, y), self, True)
+#             self.grid.place_agent(residential, (x, y))
+#             self.schedule.add(residential)
+#
+#         # Create wolves
+#         for i in range(self.initial_commercial):
+#             x = self.random.randrange(self.width)
+#             y = self.random.randrange(self.height)
+#             c_money = np.random.lognormal(300000, 150000)
+#             c_wtp = random.normalvariate(200, 200)
+#             c_energy_usage = random.normalvariate(6300, 1000)
+#             c_savings = np.random.lognormal(3000000, 1000000)
+#             c_costs = c_energy_usage * commercial_kWh_cost
+#             commercial = Commercial(self.next_id(), (x, y), self, True)
+#             self.grid.place_agent(commercial, (x, y))
+#             self.schedule.add(commercial)
+#
+#         self.running = True
+#         self.datacollector.collect(self)
+#
+#     def step(self):
+#         self.schedule.step()
+#         # collect data
+#         self.datacollector.collect(self)
+#         if self.verbose:
+#             print(
+#                 [
+#                     self.schedule.time,
+#                     self.schedule.get_breed_count(Residential),
+#                     self.schedule.get_breed_count(Commercial)
+#                 ]
+#             )
+#
+#     def run_model(self, step_count=480):
+#
+#         if self.verbose:
+#             print("Initial number commercial agents: ", self.schedule.get_breed_count(Commercial))
+#             print("Initial number residential agents: ", self.schedule.get_breed_count(Residential))
+#
+#         for i in range(step_count):
+#             self.step()
+#
+#         if self.verbose:
+#             print("")
+#             print("Final number Commercial: ", self.schedule.get_breed_count(Commercial))
+#             print("Final number Residential: ", self.schedule.get_breed_count(Residential))
 
 #
 # class WolfSheep(Model):
