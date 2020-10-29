@@ -296,14 +296,30 @@ class Residential(RandomWalker):
 
     def step(self):
         self.random_move()
-        self.money -= 1
 
-        # If there are sheep present, eat one
-        x, y = self.pos
         this_cell = self.model.grid.get_cell_list_contents([self.pos])
         resident = [obj for obj in this_cell if isinstance(obj, Residential)]
-        if len(Residential) > 0:
-            self.money = self.model.money_setting
+        if resident:
+            self.money = self.model.money_setting_r
+
+class Commercial(RandomWalker):
+    """
+    A wolf that walks around, reproduces (asexually) and eats sheep.
+    """
+
+    money = None
+
+    def __init__(self, unique_id, pos, model, moore, money=None):
+        super().__init__(unique_id, pos, model, moore=moore)
+        self.money = money
+
+    def step(self):
+        self.random_move()
+
+        this_cell = self.model.grid.get_cell_list_contents([self.pos])
+        commercial = [obj for obj in this_cell if isinstance(obj, Commercial)]
+        if commercial:
+            self.money = self.model.money_setting_c
 
         #     # Kill the sheep
         #     #self.model.grid._remove_agent(self.pos, sheep_to_eat)

@@ -1,15 +1,5 @@
-"""
-Wolf-Sheep Predation Model
-================================
 
-Replication of the model found in NetLogo:
-    Wilensky, U. (1997). NetLogo Wolf Sheep Predation model.
-    http://ccl.northwestern.edu/netlogo/models/WolfSheepPredation.
-    Center for Connected Learning and Computer-Based Modeling,
-    Northwestern University, Evanston, IL.
-"""
 from random import random
-
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
@@ -18,13 +8,13 @@ from mesa.datacollection import DataCollector
 from pandas import np
 
 
-from energy_model.agents import Residential
+from energy_model.agents import Residential, Commercial
 from energy_model.schedule import RandomActivationByBreed
 
 import random
 import numpy as np
 
-# Set Nuclear Cost
+# Setting up Initial Values from netlogo
 d = .07
 nuclear_plantlife = int(np.random.normal(loc=60, scale=4))
 nuclear_CRF = ((d * (1 + d) ** nuclear_plantlife) / ((1 + d) ** (nuclear_plantlife) - 1))
@@ -304,22 +294,21 @@ nuclear_efficiency = nuclear_efficiency + random.uniform(0, .0005)
 gas_fuelcost = gas_fuelcost + random.uniform(.007, .013)
 coal_fuelcost = coal_fuelcost + random.uniform(.007, .013)
 
-class Energy(Model):
-    """
-    Wolf-Sheep Predation Model
-    """
 
+
+
+
+#Model Starts here
+class Energy(Model):
     height = 20
     width = 20
-
+    #(4000000*.87 and *.13 /2000)
     initial_residential = 1740
-
+    initial_commercial = 260
     #sheep_reproduce = 0.04
     #wolf_reproduce = 0.05
-
-    money_setting = np.random.lognormal(75000, 25000)
-
-
+    money_setting_r = np.random.lognormal(75000, 25000)
+    money_setting_c = np.random.lognormal(30000, 150000)
     #grass = False
     #grass_regrowth_time = 30
     #sheep_gain_from_food = 4
@@ -335,7 +324,9 @@ class Energy(Model):
         height=20,
         width=20,
         initial_residential= 1740,
-        money_setting = np.random.lognormal(75000, 25000)
+        initial_commercial=260,
+        money_setting_r = np.random.lognormal(75000, 25000),
+        money_setting_c =  np.random.lognormal(30000, 150000),
         #sheep_reproduce=0.04,
         #wolf_reproduce=0.05,
         #wolf_gain_from_food=20,
@@ -349,7 +340,9 @@ class Energy(Model):
         self.height = height
         self.width = width
         self.initial_residential = initial_residential
-        self.money_setting = money_setting
+        self.initial_commercial = initial_commercial
+        self.money_setting_c = money_setting_c
+        self.money_setting_r = money_setting_r
         # self.initial_commercial = initial_commercial
         # self.wind_investment = wind_investment
         # self.clean_incentive = clean_incentive
@@ -374,10 +367,19 @@ class Energy(Model):
         for i in range(self.initial_residential):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            money = self.money_setting
+            money = self.money_setting_r
             residents = Residential(self.next_id(), (x, y), self, True, money)
             self.grid.place_agent(residents, (x, y))
             self.schedule.add(residents)
+        # Create sheep:
+        for i in range(self.initial_commercial):
+            x = self.random.randrange(self.width)
+            y = self.random.randrange(self.height)
+            money = self.money_setting_c
+            commercials = Commercial(self.next_id(), (x, y), self, True, money)
+            self.grid.place_agent(commercials, (x, y))
+            self.schedule.add(commercials)
+
     #
     #     # Create wolves
     #     for i in range(self.initial_commercial):
@@ -415,7 +417,7 @@ class Energy(Model):
                 [
                     self.schedule.time,
                     self.schedule.get_breed_count(Residential),
-                    #self.schedule.get_breed_count(Sheep),
+                    self.schedule.get_breed_count(Commercial),
                 ]
             )
 
