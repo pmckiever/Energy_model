@@ -288,11 +288,13 @@ class Residential(RandomWalker):
     A wolf that walks around, reproduces (asexually) and eats sheep.
     """
 
-    money = None
+    money_r = None
+    energy_consumption_r = None
 
-    def __init__(self, unique_id, pos, model, moore, money=None):
+    def __init__(self, unique_id, pos, model, moore, money_r=None, energy_consumption_r=None):
         super().__init__(unique_id, pos, model, moore=moore)
-        self.money = money
+        self.money_r = money_r
+        self.energy_consumption_r = energy_consumption_r
 
     def step(self):
         self.random_move()
@@ -300,18 +302,21 @@ class Residential(RandomWalker):
         this_cell = self.model.grid.get_cell_list_contents([self.pos])
         resident = [obj for obj in this_cell if isinstance(obj, Residential)]
         if resident:
-            self.money = self.model.money_setting_r
+            self.money_r = self.model.money_setting_r
+            self.energy_consumption_r =self.model.energy_consuming_r
 
 class Commercial(RandomWalker):
     """
     A wolf that walks around, reproduces (asexually) and eats sheep.
     """
 
-    money = None
+    money_c = None
+    energy_consumption_c = None
 
-    def __init__(self, unique_id, pos, model, moore, money=None):
+    def __init__(self, unique_id, pos, model, moore, money_c=None, energy_consumption_c=None):
         super().__init__(unique_id, pos, model, moore=moore)
-        self.money = money
+        self.money_c = money_c
+        self.energy_consumption_c = energy_consumption_c
 
     def step(self):
         self.random_move()
@@ -319,8 +324,8 @@ class Commercial(RandomWalker):
         this_cell = self.model.grid.get_cell_list_contents([self.pos])
         commercial = [obj for obj in this_cell if isinstance(obj, Commercial)]
         if commercial:
-            self.money = self.model.money_setting_c
-
+            self.money_c = self.model_c.money_setting_c
+            self.energy_consumption_c = self.model.energy_consuming_c
         #     # Kill the sheep
         #     #self.model.grid._remove_agent(self.pos, sheep_to_eat)
         #     self.model.schedule.remove(sheep_to_eat)

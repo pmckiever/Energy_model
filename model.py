@@ -302,13 +302,15 @@ coal_fuelcost = coal_fuelcost + random.uniform(.007, .013)
 class Energy(Model):
     height = 20
     width = 20
-    #(4000000*.87 and *.13 /2000)
-    initial_residential = 1740
-    initial_commercial = 260
+    #(4000000*.87 and *.13 /4000)
+    initial_residential = 870
+    initial_commercial = 130
     #sheep_reproduce = 0.04
     #wolf_reproduce = 0.05
     money_setting_r = np.random.lognormal(75000, 25000)
     money_setting_c = np.random.lognormal(30000, 150000)
+    energy_consuming_c = np.random.normal(6300,1000)
+    energy_consuming_r = np.random.normal(696, 100)
     #grass = False
     #grass_regrowth_time = 30
     #sheep_gain_from_food = 4
@@ -323,10 +325,12 @@ class Energy(Model):
         self,
         height=20,
         width=20,
-        initial_residential= 1740,
-        initial_commercial=260,
+        initial_residential= 870,
+        initial_commercial=130,
         money_setting_r = np.random.lognormal(75000, 25000),
         money_setting_c =  np.random.lognormal(30000, 150000),
+        energy_consuming_c=np.random.normal(6300, 1000),
+        energy_consuming_r=np.random.normal(696, 100)
         #sheep_reproduce=0.04,
         #wolf_reproduce=0.05,
         #wolf_gain_from_food=20,
@@ -343,6 +347,8 @@ class Energy(Model):
         self.initial_commercial = initial_commercial
         self.money_setting_c = money_setting_c
         self.money_setting_r = money_setting_r
+        self.energy_consuming_r = energy_consuming_r
+        self.energy_consuming_c = energy_consuming_c
         # self.initial_commercial = initial_commercial
         # self.wind_investment = wind_investment
         # self.clean_incentive = clean_incentive
@@ -364,21 +370,31 @@ class Energy(Model):
         )
 
         # Create sheep:
-        for i in range(self.initial_residential):
-            x = self.random.randrange(self.width)
-            y = self.random.randrange(self.height)
-            money = self.money_setting_r
-            residents = Residential(self.next_id(), (x, y), self, True, money)
-            self.grid.place_agent(residents, (x, y))
-            self.schedule.add(residents)
-        # Create sheep:
         for i in range(self.initial_commercial):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            money = self.money_setting_c
-            commercials = Commercial(self.next_id(), (x, y), self, True, money)
+            money_c = self.money_setting_c
+            energy_consuming_c = self.energy_consuming_c
+            commercials = Commercial(self.next_id(), (x, y), self, True, money_c,energy_consuming_c)
             self.grid.place_agent(commercials, (x, y))
             self.schedule.add(commercials)
+
+        for i in range(self.initial_residential):
+            x = self.random.randrange(self.width)
+            y = self.random.randrange(self.height)
+            money_r = self.money_setting_r
+            residents = Residential(self.next_id(), (x, y), self, True, money_r,energy_consuming_r)
+            self.grid.place_agent(residents, (x, y))
+            self.schedule.add(residents)
+
+        self.datacollector = DataCollector(
+            {
+                "Residential Energy Consumed": lambda m: m.schedule.get_energy_usage_r(Residential),
+                "Commercial Energy Consumed": lambda m: m.schedule.get_energy_usage_c(Commercial),
+            }
+        )
+        # Create sheep:
+
 
     #
     #     # Create wolves

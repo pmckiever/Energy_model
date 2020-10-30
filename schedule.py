@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from mesa.time import RandomActivation
+from energy_model import model as Energy
 
 
 class RandomActivationByBreed(RandomActivation):
@@ -73,3 +74,9 @@ class RandomActivationByBreed(RandomActivation):
         Returns the current number of agents of certain breed in the queue.
         """
         return len(self.agents_by_breed[breed_class].values())
+
+    def get_energy_usage_r(self,breed_class):
+        return sum(self.agents_by_breed[breed_class][Energy.energy_usage_r].values())
+
+    def get_energy_usage_c(self,breed_class):
+        return sum(self.agents_by_breed[breed_class][Energy.energy_usage_c].values())
