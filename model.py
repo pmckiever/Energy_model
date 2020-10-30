@@ -305,21 +305,19 @@ class Energy(Model):
     #(4000000*.87 and *.13 /4000)
     initial_residential = 870
     initial_commercial = 130
-    #sheep_reproduce = 0.04
-    #wolf_reproduce = 0.05
+
+    wind_investment = 3
+    clean_incentive = 1
+    producer_strategy = "min_cost"
+
+
     money_setting_r = np.random.lognormal(75000, 25000)
     money_setting_c = np.random.lognormal(30000, 150000)
     energy_consuming_c = np.random.normal(6300,1000)
     energy_consuming_r = np.random.normal(696, 100)
-    #grass = False
-    #grass_regrowth_time = 30
-    #sheep_gain_from_food = 4
+
 
     verbose = False  # Print-monitoring
-
-    description = (
-        "A model for simulating wolf and sheep (predator-prey) ecosystem modelling."
-    )
 
     def __init__(
         self,
@@ -330,13 +328,12 @@ class Energy(Model):
         money_setting_r = np.random.lognormal(75000, 25000),
         money_setting_c =  np.random.lognormal(30000, 150000),
         energy_consuming_c=np.random.normal(6300, 1000),
-        energy_consuming_r=np.random.normal(696, 100)
-        #sheep_reproduce=0.04,
-        #wolf_reproduce=0.05,
-        #wolf_gain_from_food=20,
-        #grass=False,
-        #grass_regrowth_time=30,
-        #sheep_gain_from_food=4,
+        energy_consuming_r=np.random.normal(696, 100),
+        wind_investment = 3,
+        clean_incentive = 1,
+        producer_strategy = "min_cost"
+
+
     ):
 
         super().__init__()
@@ -349,16 +346,11 @@ class Energy(Model):
         self.money_setting_r = money_setting_r
         self.energy_consuming_r = energy_consuming_r
         self.energy_consuming_c = energy_consuming_c
-        # self.initial_commercial = initial_commercial
-        # self.wind_investment = wind_investment
-        # self.clean_incentive = clean_incentive
-        # self.producer_strategy = producer_strategy
-        # self.sheep_reproduce = sheep_reproduce
-        # self.wolf_reproduce = wolf_reproduce
-        # self.wolf_gain_from_food = wolf_gain_from_food
-        # self.grass = grass
-        # self.grass_regrowth_time = grass_regrowth_time
-        #self.sheep_gain_from_food = sheep_gain_from_food
+        self.initial_commercial = initial_commercial
+        self.wind_investment = wind_investment
+        self.clean_incentive = clean_incentive
+        self.producer_strategy = producer_strategy
+
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
