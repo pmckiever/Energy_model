@@ -290,11 +290,19 @@ class Residential(RandomWalker):
 
     money_r = None
     energy_consumption_r = None
+    wtp_r = None
+    saving_r = None
+    costs_r = None
 
-    def __init__(self, unique_id, pos, model, moore, money_r=None, energy_consumption_r=None):
+
+
+    def __init__(self, unique_id, pos, model, moore, money_r=None, energy_consumption_r=None,wtp_r=None,saving_r=None,costs_r = None):
         super().__init__(unique_id, pos, model, moore=moore)
         self.money_r = money_r
         self.energy_consumption_r = energy_consumption_r
+        self.wtp_r = wtp_r
+        self.saving_r = saving_r
+        self.costs_r = costs_r
 
     def step(self):
         self.random_move()
@@ -304,6 +312,9 @@ class Residential(RandomWalker):
         if resident:
             self.money_r = self.model.money_setting_r
             self.energy_consumption_r =self.model.energy_consuming_r
+            self.wtp_r = self.model.wtp_setting_r
+            self.saving_r = self.model.savings_setting_r
+            self.costs_r = self.model.costs_setting_r
 
 class Commercial(RandomWalker):
     """
@@ -312,11 +323,17 @@ class Commercial(RandomWalker):
 
     money_c = None
     energy_consumption_c = None
+    wtp_c = None
+    saving_c = None
+    costs_c = None
 
-    def __init__(self, unique_id, pos, model, moore, money_c=None, energy_consumption_c=None):
+    def __init__(self, unique_id, pos, model, moore, money_c=None, energy_consumption_c=None, wtp_c=None,saving_c=None,costs_c = None):
         super().__init__(unique_id, pos, model, moore=moore)
         self.money_c = money_c
         self.energy_consumption_c = energy_consumption_c
+        self.wtp_c = wtp_c
+        self.saving_c = saving_c
+        self.costs_c = costs_c
 
     def step(self):
         self.random_move()
@@ -326,61 +343,6 @@ class Commercial(RandomWalker):
         if commercial:
             self.money_c = self.model_c.money_setting_c
             self.energy_consumption_c = self.model.energy_consuming_c
-        #     # Kill the sheep
-        #     #self.model.grid._remove_agent(self.pos, sheep_to_eat)
-        #     self.model.schedule.remove(sheep_to_eat)
-        #
-        # # Death or reproduction
-        # if self.energy < 0:
-        #     self.model.grid._remove_agent(self.pos, self)
-        #     self.model.schedule.remove(self)
-        # else:
-        #     if self.random.random() < self.model.wolf_reproduce:
-        #         # Create a new wolf cub
-        #         self.energy /= 2
-        #         cub = Wolf(
-        #             self.model.next_id(), self.pos, self.model, self.moore, self.energy
-        #         )
-        #         self.model.grid.place_agent(cub, cub.pos)
-        #         self.model.schedule.add(cub)
-
-
-# # This is where defining the class begins
-#
-# class Residential(RandomWalker):
-#     r_money = np.random.lognormal(75000, 25000)
-#     r_wtp = random.normalvariate(16, 16)
-#     r_energy_usage = random.normalvariate(696, 100)
-#     r_savings = np.random.lognormal(70000, 70000)
-#     r_costs = r_energy_usage * residential_kWh_cost
-#
-#     # whats up with solar and clean.
-#
-#     def __init(self, unique_id, pos, model,moore, r_money=np.random.lognormal(75000, 25000), r_wtp=random.normalvariate(16, 16),
-#                r_energy_usage=random.normalvariate(696, 100), r_savings=np.random.lognormal(70000, 70000),
-#                r_costs=(r_energy_usage * residential_kWh_cost)):
-#         super().__init__(unique_id, pos, model,moore =moore)
-#         self.r_money = r_money
-#         self.r_wtp = r_
-
-#    def step(self):
-#
-# class nuclear_plant(Agent):
-#     nuclear_power =
-#     nuclear_capacity =
-#     nuclear_months_running =
-#
-#     # whats up with solar and clean.
-#
-#     def __init(self, unique_id, pos, model,power =, capacity =,months_running=):
-#         super().__init__(unique_id, pos, model)
-#         self.power = power
-#         self.capacity = capacity
-#         self.months_running = months_running
-#
-#     def step(self):
-
-#
-# class Sheep(RandomWalker):
-#     """
-#
+            self.wtp_c = self.model.wtp_setting_c
+            self.saving_c = self.model.savings_setting_c
+            self.costs_c = self.model.costs_setting_c

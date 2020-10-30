@@ -327,6 +327,12 @@ class Energy(Model):
         initial_commercial=130,
         money_setting_r = np.random.lognormal(75000, 25000),
         money_setting_c =  np.random.lognormal(30000, 150000),
+        wtp_setting_r = random.normalvariate(16, 16),
+        wtp_setting_c = random.normalvariate(200, 200),
+        savings_setting_r = np.random.lognormal(70000, 70000),
+        savings_setting_c=np.random.lognormal(3000000, 1000000),
+        costs_setting_r= energy_consuming_r * residential_kWh_cost,
+        costs_setting_c=energy_consuming_c * commercial_kWh_cost,
         energy_consuming_c=np.random.normal(6300, 1000),
         energy_consuming_r=np.random.normal(696, 100),
         wind_investment = 3,
@@ -347,6 +353,12 @@ class Energy(Model):
         self.energy_consuming_r = energy_consuming_r
         self.energy_consuming_c = energy_consuming_c
         self.initial_commercial = initial_commercial
+        self.wtp_setting_r = wtp_setting_r
+        self.wtp_setting_c = wtp_setting_c
+        self.savings_setting_r =savings_setting_r
+        self.savings_setting_c =savings_setting_c
+        self.costs_setting_r = costs_setting_r
+        self.costs_setting_c = costs_setting_c
         self.wind_investment = wind_investment
         self.clean_incentive = clean_incentive
         self.producer_strategy = producer_strategy
@@ -367,15 +379,22 @@ class Energy(Model):
             y = self.random.randrange(self.height)
             money_c = self.money_setting_c
             energy_consuming_c = self.energy_consuming_c
-            commercials = Commercial(self.next_id(), (x, y), self, True, money_c,energy_consuming_c)
+            wtp_setting_c =self.wtp_setting_c
+            savings_setting_c =self.savings_setting_c
+            costs_setting_c = self.costs_setting_c
+            commercials = Commercial(self.next_id(), (x, y), self, True, money_c,energy_consuming_c,wtp_setting_c,savings_setting_c,costs_setting_c)
             self.grid.place_agent(commercials, (x, y))
             self.schedule.add(commercials)
 
         for i in range(self.initial_residential):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
+            energy_consuming_r = self.energy_consuming_r
+            wtp_setting_r = self.wtp_setting_r
+            savings_setting_r = self.savings_setting_r
+            costs_setting_r = self.costs_setting_r
             money_r = self.money_setting_r
-            residents = Residential(self.next_id(), (x, y), self, True, money_r,energy_consuming_r)
+            residents = Residential(self.next_id(), (x, y), self, True, money_r,energy_consuming_r,wtp_setting_r,savings_setting_r,costs_setting_r)
             self.grid.place_agent(residents, (x, y))
             self.schedule.add(residents)
 
@@ -385,37 +404,7 @@ class Energy(Model):
                 "Commercial Energy Consumed": lambda m: m.schedule.get_energy_usage_c(Commercial),
             }
         )
-        # Create sheep:
 
-
-    #
-    #     # Create wolves
-    #     for i in range(self.initial_commercial):
-    #         x = self.random.randrange(self.width)
-    #         y = self.random.randrange(self.height)
-    #         energy = self.random.randrange(2 * self.wolf_gain_from_food)
-    #         wolf = Wolf(self.next_id(), (x, y), self, True, energy)
-    #         self.grid.place_agent(wolf, (x, y))
-    #         self.schedule.add(wolf)
-    #
-    #     # Create grass patches
-    #     if self.grass:
-    #         for agent, x, y in self.grid.coord_iter():
-    #
-    #             fully_grown = self.random.choice([True, False])
-    #
-    #             if fully_grown:
-    #                 countdown = self.grass_regrowth_time
-    #             else:
-    #                 countdown = self.random.randrange(self.grass_regrowth_time)
-    #
-    #             patch = GrassPatch(self.next_id(), (x, y), self, fully_grown, countdown)
-    #             self.grid.place_agent(patch, (x, y))
-    #             self.schedule.add(patch)
-    #
-    #     self.running = True
-    #     self.datacollector.collect(self)
-    #
     def step(self):
         self.schedule.step()
         # collect data
