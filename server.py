@@ -79,7 +79,7 @@ model_params = {
     "num_nodes": UserSettableParameter(
         "slider",
         "Number of agents",
-        1740,
+        260,
         10,
         2000,
         1,
@@ -91,9 +91,9 @@ model_params = {
     "initial_with_clean": UserSettableParameter(
         "slider",
         "initial_with_clean",
-        174,
+        3,
         1,
-        200,
+        100,
         1,
         description="initial_with_clean",
     ),
