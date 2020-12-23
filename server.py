@@ -1,83 +1,142 @@
+import math
+
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.modules import CanvasGrid, ChartModule
-from mesa.visualization.modules import CanvasGrid
-from mesa.visualization.ModularVisualization import ModularServer
-from mesa.visualization.ModularVisualization import VisualizationElement
-import numpy as np
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.modules import NetworkModule
+from mesa.visualization.modules import TextElement
+from .model import Change_Res_Network, State, number_has_clean
 
 
-from energy_model.agents import Residential, Commercial
-from energy_model.model import Energy
+def network_portrayal(G):
+    # The model ensures there is always 1 agent per node
 
+    def node_color(agent):
+        return {State.has_clean: "#FF0000", State.not_clean: "#008000"}.get(
+            agent.state, "#808080"
+        )
 
-def energy_portrayal(agent):
-    if agent is None:
-        return
-    portrayal = {}
+    def edge_color(agent1, agent2):
+        if State.refuses_clean in (agent1.state, agent2.state):
+            return "#000000"
+        return "#e8e8e8"
 
-    if type(agent) is Residential:
-        portrayal["Shape"] = "energy_model/house.png"
-        portrayal["scale"] = 0.9
-        portrayal["Layer"] = 1
+    def edge_width(agent1, agent2):
+        if State.refuses_clean in (agent1.state, agent2.state):
+            return 3
+        return 2
 
-    elif type(agent) is Commercial:
-        portrayal["Shape"] = "energy_model/building.png"
-        portrayal["scale"] = 0.9
-        portrayal["Layer"] = 2
+    def get_agents(source, target):
+        return G.nodes[source]["agent"][0], G.nodes[target]["agent"][0]
+
+    portrayal = dict()
+    portrayal["nodes"] = [
+        {
+            "size": 6,
+            "color": node_color(agents[0]),
+            "tooltip": "id: {}<br>state: {}".format(
+                agents[0].unique_id, agents[0].state.name
+            ),
+        }
+        for (_, agents) in G.nodes.data("agent")
+    ]
+
+    portrayal["edges"] = [
+        {
+            "source": source,
+            "target": target,
+            "color": edge_color(*get_agents(source, target)),
+            "width": edge_width(*get_agents(source, target)),
+        }
+        for (source, target) in G.edges
+    ]
 
     return portrayal
 
 
-canvas_element = CanvasGrid(energy_portrayal, 20, 20, 500, 500)
-chart_element = ChartModule(
-    [{"Label": "Residential", "Color": "#AA0000"}, {"Label": "Commercial", "Color": "#666666"}]
+network = NetworkModule(network_portrayal, 500, 500, library="d3")
+chart = ChartModule(
+    [
+        {"Label": "has_clean", "Color": "#FF0000"},
+        {"Label": "not_clean", "Color": "#008000"},
+        {"Label": "refuses_clean", "Color": "#808080"},
+    ]
 )
-Wealth = ChartModule([{"Label": "Wealth($10k)", "Color": "Black", "canvas_height": 100, "canvas_width": 200}],data_collector_name='datacollector')
 
-Average_Consumption = ChartModule(
-    [{"Label": "Average Consumption", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
 
-Average_cost = ChartModule(
-    [{"Label": "Average cost per kwh", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
+class MyTextElement(TextElement):
+    def render(self, model):
+        ratio = model.refuses_clean_not_clean_ratio()
+        ratio_text = "&infin;" if ratio is math.inf else "{0:.2f}".format(ratio)
+        has_clean_text = str(number_has_clean(model))
 
-Power_mix = ChartModule([{"Label": "Power mix", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
+        return "refuses_clean/not_clean Ratio: {}<br>has_clean Remaining: {}".format(
+            ratio_text, has_clean_text
+        )
 
-CO2e = ChartModule([{"Label": "CO2e Released", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
-
-Supply_and_demand = ChartModule(
-    [{"Label": "Supply and demand", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
-
-Average_bill = ChartModule([{"Label": "Average bill", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
-
-Cost_by_source = ChartModule([{"Label": "Cost by source", "Color": "Black", "canvas_height": 100, "canvas_width": 200}])
 
 model_params = {
-    "wind_investment": UserSettableParameter("slider", "wind_investment", .8, 0, 100, 1),
-    "clean_incentive": UserSettableParameter("slider", "clean_incentive", .3, 0, 10, 1),
-    "producer_strategy": UserSettableParameter("choice", "producer_strategy", "min_cost",
-                                               choices=['min_cost', 'wind_only', 'solar_only', 'renewable_only',
-                                                        'on_demand_only']),
-    "initial_residential": UserSettableParameter(
-        "slider", "Initial Residential Agents", 870, 0, 870
+    "num_nodes": UserSettableParameter(
+        "slider",
+        "Number of agents",
+        1740,
+        10,
+        2000,
+        1,
+        description="Choose how many agents to include in the model",
     ),
-    "initial_commercial": UserSettableParameter(
-        "slider", "Initial Commercial Agents", 130, 0, 130
+    "avg_node_degree": UserSettableParameter(
+        "slider", "Avg Node Degree", 3, 3, 8, 1, description="Avg Node Degree"
+    ),
+    "initial_with_clean": UserSettableParameter(
+        "slider",
+        "initial_with_clean",
+        174,
+        1,
+        200,
+        1,
+        description="initial_with_clean",
+    ),
+    "change_clean_chance": UserSettableParameter(
+        "slider",
+        "Change Clean Chance",
+        0.03,
+        0.0,
+        1.0,
+        0.01,
+        description="Probability that not_clean neighbor will be has_clean",
+    ),
+    "check_frequency": UserSettableParameter(
+        "slider",
+        "Check Frequency",
+        1.0,
+        0.0,
+        1.0,
+        0.1,
+        description="Frequency the nodes check whether they are has_clean by " "a virus",
+    ),
+    "switch_back_chance": UserSettableParameter(
+        "slider",
+        "switch_back_chance",
+        0.02,
+        0.0,
+        0.15,
+        0.01,
+        description="Probability that the virus will be removed",
+    ),
+    "gain_resistance_chance": UserSettableParameter(
+        "slider",
+        "Gain Resistance Chance",
+        0.0,
+        0.0,
+        1.0,
+        0.01,
+        description="Probability that a switch_back agent will become "
+        "refuses_clean to this virus in the future",
     ),
 }
 
-
 server = ModularServer(
-    Energy,
-    [canvas_element, Wealth, Average_Consumption, Average_cost, Power_mix, CO2e, Supply_and_demand, Average_bill,
-     Cost_by_source], "Energy Model", model_params,
+    Change_Res_Network, [network, MyTextElement(), chart], "Change Res Model", model_params
 )
 server.port = 8521
-
-# histogram = HistogramModule(list(range(10)), 200, 500)
-#
-# chart = ChartModule([{"Label": "Gini",
-#                       "Color": "Black"}],
-#                     data_collector_name='datacollector')
-#
